@@ -22,7 +22,7 @@ import {
 import { isArr, isBool, isFn } from '@formily/shared'
 import { Schema } from '@formily/json-schema'
 import { usePrefixCls } from '../__builtins__'
-import { ArrayBase, ArrayBaseMixins } from '../array-base'
+import { ArrayBase, ArrayBaseMixins, IArrayBaseProps } from '../array-base'
 
 interface ObservableColumnSource {
   field: GeneralField
@@ -44,9 +44,10 @@ interface IStatusSelectProps extends SelectProps {
   pageSize?: number
 }
 
-export interface ExtendTableProps extends TableProps {
+export type ExtendTableProps = {
   pagination?: PaginationProps
-}
+} & IArrayBaseProps &
+  TableProps
 
 type ComposedArrayTable = ReactFC<ExtendTableProps> &
   ArrayBaseMixins & {
@@ -86,7 +87,7 @@ const useArrayTableSources = () => {
       const field = arrayField.query(arrayField.address.concat(name)).take()
       const columnProps =
         field?.component?.[1] || schema['x-component-props'] || {}
-      const display = field?.display || schema['x-display']
+      const display = field?.display || schema['x-display'] || 'visible'
       return [
         {
           name,
@@ -120,6 +121,7 @@ const useArrayTableSources = () => {
 }
 
 const useArrayTableColumns = (
+  dataSource: any[],
   field: ArrayField,
   sources: ObservableColumnSource[]
 ): TableProps['columns'] => {
@@ -131,7 +133,7 @@ const useArrayTableColumns = (
       key,
       dataIndex: name,
       cell: (value: any, _: number, record: any) => {
-        const index = field.value?.indexOf(record)
+        const index = dataSource?.indexOf(record)
         const children = (
           <ArrayBase.Item
             key={index}
@@ -299,15 +301,22 @@ export const ArrayTable: ComposedArrayTable = observer(
     const prefixCls = usePrefixCls('formily-array-table')
     const dataSource = Array.isArray(field.value) ? field.value.slice() : []
     const sources = useArrayTableSources()
-    const columns = useArrayTableColumns(field, sources)
+    const columns = useArrayTableColumns(dataSource, field, sources)
     const pagination = isBool(props.pagination) ? {} : props.pagination
+    const { onAdd, onCopy, onRemove, onMoveDown, onMoveUp } = props
     const addition = useAddition()
 
     return (
       <ArrayTablePagination {...pagination} dataSource={dataSource}>
         {(dataSource, pager) => (
           <div ref={ref} className={prefixCls}>
-            <ArrayBase>
+            <ArrayBase
+              onAdd={onAdd}
+              onCopy={onCopy}
+              onRemove={onRemove}
+              onMoveUp={onMoveUp}
+              onMoveDown={onMoveDown}
+            >
               <Table
                 size="small"
                 {...omit(props, ['value', 'onChange', 'pagination'])}

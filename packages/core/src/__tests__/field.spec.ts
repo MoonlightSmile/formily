@@ -861,7 +861,7 @@ test('setState/getState', () => {
     })
   )
   expect(aa.value).toEqual('123')
-  expect(bb.value).toEqual('123')
+  expect(bb.value).toBeUndefined()
   expect(cc.value).toEqual('123')
   form.setFieldState(form.query('cc'), (state) => {
     state.value = 'ccc'
@@ -1093,7 +1093,7 @@ test('fault tolerance', () => {
   field.setDisplay('none')
   expect(field.value).toBeUndefined()
   field.setValue(321)
-  expect(field.value).toEqual(321)
+  expect(field.value).toBeUndefined()
   field.setDisplay('visible')
   expect(field.value).toEqual(321)
   form.setDisplay(null)
@@ -2276,4 +2276,129 @@ test('onFieldReact with field destroyed', () => {
   aa.destroy()
   obs.value = '111'
   expect(fn).toBeCalledTimes(2)
+})
+
+test('field actions', () => {
+  const form = attach(createForm())
+  const aa = attach(
+    form.createField({
+      name: 'aa',
+    })
+  )
+  expect(aa.actions).toEqual({})
+  aa.inject({
+    test: () => 123,
+  })
+  expect(aa.invoke('test')).toEqual(123)
+  aa.inject({
+    test: () => 321,
+  })
+  expect(aa.invoke('test')).toEqual(321)
+})
+
+test('field hidden value', () => {
+  const form = attach(createForm())
+  const aa = attach(
+    form.createField({
+      name: 'aa',
+      hidden: true,
+      initialValue: '123',
+    })
+  )
+  expect(form.values).toEqual({ aa: '123' })
+
+  const objectField = attach(
+    form.createObjectField({
+      name: 'object',
+      hidden: true,
+    })
+  )
+  const arrayField = attach(
+    form.createArrayField({
+      name: 'array',
+      hidden: true,
+    })
+  )
+
+  aa.setDisplay('none')
+  objectField.setDisplay('none')
+  arrayField.setDisplay('none')
+  expect(aa.value).toBeUndefined()
+  expect(objectField.value).toBeUndefined()
+  expect(arrayField.value).toBeUndefined()
+
+  aa.setDisplay('hidden')
+  objectField.setDisplay('hidden')
+  arrayField.setDisplay('hidden')
+  expect(aa.value).toEqual('123')
+  expect(objectField.value).toEqual({})
+  expect(arrayField.value).toEqual([])
+})
+
+test('field destructor path with display none', () => {
+  const form = attach(createForm())
+  const aa = attach(
+    form.createArrayField({
+      name: '[aa,bb]',
+    })
+  )
+  aa.setDisplay('none')
+  expect(form.values).toEqual({})
+  expect(aa.value).toEqual([])
+})
+
+test('onInput should ignore HTMLInputEvent propagation', async () => {
+  const form = attach(createForm<any>())
+  const mockHTMLInput = { value: '321' }
+  const mockDomEvent = { target: mockHTMLInput, currentTarget: mockHTMLInput }
+  const aa = attach(
+    form.createField({
+      name: 'aa',
+    })
+  )
+  await aa.onInput(mockDomEvent)
+  expect(aa.value).toEqual('321')
+
+  await aa.onInput({ target: { value: '2' }, currentTarget: { value: '4' } })
+  expect(aa.value).toEqual('321')
+
+  // currentTarget is undefined, skip ignore
+  await aa.onInput({ target: { value: '123' } })
+  expect(aa.value).toEqual('123')
+})
+
+test('onFocus and onBlur with invalid target value', async () => {
+  const form = attach(createForm<any>())
+  const field = attach(
+    form.createField({
+      name: 'aa',
+      validateFirst: true,
+      value: '111',
+      validator: [
+        {
+          triggerType: 'onFocus',
+          format: 'date',
+        },
+        {
+          triggerType: 'onBlur',
+          format: 'url',
+        },
+      ],
+    })
+  )
+
+  await field.onFocus({ target: {} })
+  expect(field.selfErrors).toEqual([])
+  await field.onBlur({ target: {} })
+  expect(field.selfErrors).toEqual([])
+
+  await field.onFocus()
+  expect(field.selfErrors).toEqual([
+    'The field value is not a valid date format',
+  ])
+  await field.onBlur()
+  expect(field.selfErrors).toEqual([
+    'The field value is not a valid date format',
+    'The field value is a invalid url',
+  ])
 })

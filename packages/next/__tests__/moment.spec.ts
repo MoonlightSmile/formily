@@ -8,6 +8,7 @@ test('momentable is usable', () => {
       moment.isMoment(item)
     )
   ).toBe(true)
+  expect(momentable(0)).toBe(0)
 })
 
 test('formatMomentValue is usable', () => {
@@ -21,6 +22,26 @@ test('formatMomentValue is usable', () => {
   expect(formatMomentValue('2021-12-21 15:47:00', (date: string) => date)).toBe(
     '2021-12-21 15:47:00'
   )
+  expect(formatMomentValue('12:11', 'HH:mm')).toBe('12:11')
+  expect(formatMomentValue('12:11:11', 'HH:mm:ss')).toBe('12:11:11')
+  expect(formatMomentValue(['12:11'], ['HH:mm'])).toEqual(['12:11'])
+  expect(formatMomentValue(['12:11:11'], ['HH:mm:ss'])).toEqual(['12:11:11'])
+  expect(formatMomentValue(1663155911097, 'YYYY-MM-DD HH:mm:ss')).toBe(
+    moment(1663155911097).format('YYYY-MM-DD HH:mm:ss')
+  )
+  expect(formatMomentValue([1663155911097], ['YYYY-MM-DD HH:mm:ss'])).toEqual([
+    moment(1663155911097).format('YYYY-MM-DD HH:mm:ss'),
+  ])
+  expect(
+    formatMomentValue('2022-09-15T09:56:26.000Z', 'YYYY-MM-DD HH:mm:ss')
+  ).toBe(moment('2022-09-15T09:56:26.000Z').format('YYYY-MM-DD HH:mm:ss'))
+  expect(
+    formatMomentValue(['2022-09-15T09:56:26.000Z'], ['YYYY-MM-DD HH:mm:ss'])
+  ).toEqual([moment('2022-09-15T09:56:26.000Z').format('YYYY-MM-DD HH:mm:ss')])
+  expect(formatMomentValue('2022-09-15 09:56:26', 'HH:mm:ss')).toBe('09:56:26')
+  expect(formatMomentValue(['2022-09-15 09:56:26'], ['HH:mm:ss'])).toEqual([
+    '09:56:26',
+  ])
   expect(
     formatMomentValue(
       ['2021-12-21 15:47:00', '2021-12-29 15:47:00'],

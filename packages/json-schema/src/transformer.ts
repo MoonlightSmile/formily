@@ -158,15 +158,43 @@ const getBaseScope = (
   const $self = field
   const $form = field.form
   const $values = field.form.values
-  return lazyMerge(options.scope, {
-    $form,
-    $self,
-    $observable,
-    $effect,
-    $memo,
-    $props,
-    $values,
-  })
+  return lazyMerge(
+    {
+      get $lookup() {
+        return options?.scope?.$record ?? $values
+      },
+      get $records() {
+        return field.records
+      },
+      get $record() {
+        const record = field.record
+        if (typeof record === 'object') {
+          return lazyMerge(record, {
+            get $lookup() {
+              return options?.scope?.$record ?? $values
+            },
+            get $index() {
+              return field.index
+            },
+          })
+        }
+        return record
+      },
+      get $index() {
+        return field.index
+      },
+    },
+    options.scope,
+    {
+      $form,
+      $self,
+      $observable,
+      $effect,
+      $memo,
+      $props,
+      $values,
+    }
+  )
 }
 
 const getBaseReactions =
@@ -206,7 +234,7 @@ const getUserReactions = (
         const compiledWhen = shallowCompile(when, scope)
         const condition = when ? compiledWhen : true
         const request = condition ? fulfill : otherwise
-        const runner = condition ? fulfill?.run : otherwise?.run
+        const runner = request?.run
         setSchemaFieldState({
           field,
           target,

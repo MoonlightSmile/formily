@@ -63,7 +63,6 @@ export const dbStarTok = TokenType('**', {
   expectNext(next) {
     return (
       next === dotTok ||
-      next === parenLTok ||
       next === bracketLTok ||
       next === eofTok ||
       next === commaTok ||
@@ -175,6 +174,7 @@ export const bracketLTok = TokenType('[', {
       prev === dotTok ||
       prev === nameTok ||
       prev === parenLTok ||
+      // never reach
       prev == commaTok
     )
   },

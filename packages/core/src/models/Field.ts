@@ -53,7 +53,7 @@ import {
 } from '../shared/internals'
 import { Form } from './Form'
 import { BaseField } from './BaseField'
-import { IFormFeedback } from '..'
+import { IFormFeedback } from '../types'
 export class Field<
   Decorator extends JSXComponent = any,
   Component extends JSXComponent = any,
@@ -78,7 +78,6 @@ export class Field<
   feedbacks: IFieldFeedback[]
   caches: IFieldCaches = {}
   requests: IFieldRequests = {}
-
   constructor(
     address: FormPathPattern,
     props: IFieldProps<Decorator, Component, TextType, ValueType>,
@@ -125,11 +124,8 @@ export class Field<
     this.validator = this.props.validator
     this.required = this.props.required
     this.content = this.props.content
-    this.value = getValidFieldDefaultValue(
-      this.props.value,
-      this.props.initialValue
-    )
     this.initialValue = this.props.initialValue
+    this.value = this.props.value
     this.data = this.props.data
     this.decorator = toArr(this.props.decorator)
     this.component = toArr(this.props.component)
@@ -228,8 +224,14 @@ export class Field<
         () => this.value,
         (value) => {
           this.notify(LifeCycleTypes.ON_FIELD_VALUE_CHANGE)
-          if (isValid(value) && this.selfModified && !this.caches.inputting) {
-            validateSelf(this)
+          if (isValid(value)) {
+            if (this.selfModified && !this.caches.inputting) {
+              validateSelf(this)
+            }
+            if (!isEmpty(value) && this.display === 'none') {
+              this.caches.value = toJS(value)
+              this.form.deleteValuesIn(this.path)
+            }
           }
         }
       ),
@@ -243,16 +245,14 @@ export class Field<
         () => this.display,
         (display) => {
           const value = this.value
-          if (display === 'visible') {
-            if (isEmpty(value)) {
+          if (display !== 'none') {
+            if (value === undefined && this.caches.value !== undefined) {
               this.setValue(this.caches.value)
               this.caches.value = undefined
             }
           } else {
             this.caches.value = toJS(value) ?? toJS(this.initialValue)
-            if (display === 'none') {
-              this.form.deleteValuesIn(this.path)
-            }
+            this.form.deleteValuesIn(this.path)
           }
           if (display === 'none' || display === 'hidden') {
             this.setFeedback({
@@ -351,30 +351,11 @@ export class Field<
   }
 
   set value(value: ValueType) {
-    if (this.destroyed) return
-    if (!this.initialized) {
-      if (this.display === 'none') {
-        this.caches.value = value
-        return
-      }
-      if (!allowAssignDefaultValue(this.value, value) && !this.designable) {
-        return
-      }
-    }
-    this.form.setValuesIn(this.path, value)
+    this.setValue(value)
   }
 
   set initialValue(initialValue: ValueType) {
-    if (this.destroyed) return
-    if (!this.initialized) {
-      if (
-        !allowAssignDefaultValue(this.initialValue, initialValue) &&
-        !this.designable
-      ) {
-        return
-      }
-    }
-    this.form.setInitialValuesIn(this.path, initialValue)
+    this.setInitialValue(initialValue)
   }
 
   set selfErrors(messages: FeedbackMessage) {
@@ -434,11 +415,31 @@ export class Field<
   }
 
   setValue = (value?: ValueType) => {
-    this.value = value
+    if (this.destroyed) return
+    if (!this.initialized) {
+      if (this.display === 'none') {
+        this.caches.value = value
+        return
+      }
+      value = getValidFieldDefaultValue(value, this.initialValue)
+      if (!allowAssignDefaultValue(this.value, value) && !this.designable) {
+        return
+      }
+    }
+    this.form.setValuesIn(this.path, value)
   }
 
   setInitialValue = (initialValue?: ValueType) => {
-    this.initialValue = initialValue
+    if (this.destroyed) return
+    if (!this.initialized) {
+      if (
+        !allowAssignDefaultValue(this.initialValue, initialValue) &&
+        !this.designable
+      ) {
+        return
+      }
+    }
+    this.form.setInitialValuesIn(this.path, initialValue)
   }
 
   setLoading = (loading?: boolean) => {
@@ -458,12 +459,19 @@ export class Field<
   getState: IModelGetter<IFieldState> = createStateGetter(this)
 
   onInput = async (...args: any[]) => {
+    const isHTMLInputEventFromSelf = (args: any[]) =>
+      isHTMLInputEvent(args[0]) && 'currentTarget' in args[0]
+        ? args[0]?.target === args[0]?.currentTarget
+        : true
     const getValues = (args: any[]) => {
       if (args[0]?.target) {
         if (!isHTMLInputEvent(args[0])) return args
       }
       return getValuesFromEvent(args)
     }
+
+    if (!isHTMLInputEventFromSelf(args)) return
+
     const values = getValues(args)
     const value = values[0]
     this.caches.inputting = true

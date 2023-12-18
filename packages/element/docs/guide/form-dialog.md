@@ -42,7 +42,7 @@ type IFormDialogProps = Omit<DialogProps, 'title'> & {
   okText?: string | Component | VNode | (() => VNode)
   okButtonProps?: ButtonProps
   onOpen?: () => void
-  onOpend?: () => void
+  onOpened?: () => void
   onClose?: () => void
   onClosed?: () => void
   onCancel?: () => void
@@ -51,9 +51,18 @@ type IFormDialogProps = Omit<DialogProps, 'title'> & {
 }
 
 interface IFormDialog {
-  forOpen(middleware: IMiddleware<IFormProps>): IFormDialog
-  forConfirm(middleware: IMiddleware<IFormProps>): IFormDialog
-  forCancel(middleware: IMiddleware<IFormProps>): IFormDialog
+  forOpen(
+    middleware: (
+      props: IFormProps,
+      next: (props?: IFormProps) => Promise<any>
+    ) => any
+  ): IFormDialog
+  forConfirm(
+    middleware: (props: Form, next: (props?: Form) => Promise<any>) => any
+  ): IFormDialog
+  forCancel(
+    middleware: (props: Form, next: (props?: Form) => Promise<any>) => any
+  ): IFormDialog
   open(props?: IFormProps): Promise<any>
   close(): void
 }

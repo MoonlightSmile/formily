@@ -1,6 +1,6 @@
 {
   "name": "@formily/benchmark",
-  "version": "2.1.12",
+  "version": "2.3.1",
   "license": "MIT",
   "private": true,
   "repository": {
@@ -23,7 +23,7 @@
     "file-loader": "^5.0.2",
     "html-webpack-plugin": "^3.2.0",
     "mini-css-extract-plugin": "^1.6.0",
-    "postcss": "^7.0.0",
+    "postcss": "^8.4.31",
     "postcss-less": "^4.0.0",
     "postcss-loader": "^3.x",
     "raw-loader": "^4.0.0",
@@ -40,8 +40,8 @@
     "react-is": "next"
   },
   "dependencies": {
-    "@formily/reactive": "2.1.12",
-    "@formily/reactive-react": "2.1.12",
+    "@formily/reactive": "2.3.1",
+    "@formily/reactive-react": "2.3.1",
     "react": "next",
     "react-dom": "next",
     "react-is": "next"

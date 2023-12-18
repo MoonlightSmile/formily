@@ -439,7 +439,17 @@ export default () => {
 
 ### ArrayCards
 
-Reference https://ant.design/components/card-cn/
+Extended attributes
+
+| Property name | Type                      | Description     | Default value |
+| ------------- | ------------------------- | --------------- | ------------- |
+| onAdd         | `(index: number) => void` | add method      |               |
+| onRemove      | `(index: number) => void` | remove method   |               |
+| onCopy        | `(index: number) => void` | copy method     |               |
+| onMoveUp      | `(index: number) => void` | moveUp method   |               |
+| onMoveDown    | `(index: number) => void` | moveDown method |               |
+
+Other Reference https://ant.design/components/card-cn/
 
 ### ArrayCards.Addition
 
@@ -457,6 +467,8 @@ Other references https://ant.design/components/button-cn/
 
 Note: The title attribute can receive the title mapping in the Field model, that is, uploading the title in the Field is also effective
 
+Note: You can disable default behavior with `onClick={e => e.preventDefault()}` in props.
+
 ### ArrayCards.Copy
 
 > Copy button
@@ -472,6 +484,8 @@ Other references https://ant.design/components/button-cn/
 
 Note: The title attribute can receive the title mapping in the Field model, that is, uploading the title in the Field is also effective
 
+Note: You can disable default behavior with `onClick={e => e.preventDefault()}` in props.
+
 ### ArrayCards.Remove
 
 > Delete button
@@ -483,6 +497,8 @@ Note: The title attribute can receive the title mapping in the Field model, that
 Other references https://ant.design/components/icon-cn/
 
 Note: The title attribute can receive the title mapping in the Field model, that is, uploading the title in the Field is also effective
+
+Note: You can disable default behavior with `onClick={e => e.preventDefault()}` in props.
 
 ### ArrayCards.MoveDown
 
@@ -496,6 +512,8 @@ Other references https://ant.design/components/icon-cn/
 
 Note: The title attribute can receive the title mapping in the Field model, that is, uploading the title in the Field is also effective
 
+Note: You can disable default behavior with `onClick={e => e.preventDefault()}` in props.
+
 ### ArrayCards.MoveUp
 
 > Move up button
@@ -507,6 +525,8 @@ Note: The title attribute can receive the title mapping in the Field model, that
 Other references https://ant.design/components/icon-cn/
 
 Note: The title attribute can receive the title mapping in the Field model, that is, uploading the title in the Field is also effective
+
+Note: You can disable default behavior with `onClick={e => e.preventDefault()}` in props.
 
 ### ArrayCards.Index
 

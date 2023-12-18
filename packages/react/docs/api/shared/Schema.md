@@ -629,8 +629,9 @@ type SchemaEnum<Message> = Array<
 
 #### Description
 
-Schema linkage protocol, if the reaction object contains target, it represents active linkage mode, otherwise it represents passive linkage mode
-If you want to achieve more complex linkage, you can pass in the reaction responder function through the scope for processing
+Schema linkage protocol, if the reaction object contains target, it represents active linkage mode, otherwise it represents passive linkage mode  
+If you want to achieve more complex linkage, you can pass in the reaction responder function through the scope for processing  
+FormPathPattern path syntax documentation is [here](https://core.formilyjs.org/api/entry/form-path#formpathpattern)
 
 #### Signature
 
@@ -651,7 +652,18 @@ type SchemaReactionEffect =
 
 type SchemaReaction<Field = any> =
   | {
-      dependencies?: string[] | Record<string, string> //The list of dependent field paths can only describe dependencies in dot paths, and supports relative paths. If it is an array format, then it is also an array format when reading, if it is an object format , It is also an object format when reading, but the object format is equivalent to an alias
+      dependencies?: //The list of dependent field paths can only describe dependencies in dot paths, and supports relative paths
+      | Array<
+            | string //If it is an array contains string format, then it is also an array format when reading
+            | {
+                //If it is an array contains object format, then it is an object format when reading, but the name field is equivalent to an alias
+                name?: string
+                type?: string
+                source?: string
+                property?: string
+              }
+          >
+        | Record<string, string> //If it is an object format, It is also an object format when reading, but the key for object is equivalent to an alias
       when?: string | boolean //Linkage condition
       target?: string //The field path to be operated, supports FormPathPattern path syntax, note: relative path is not supported! !
       effects?: SchemaReactionEffect[] //Independent life cycle hook in active mode
@@ -737,37 +749,7 @@ Writing method two, local expression distribution linkage
 }
 ```
 
-Writing method three, linkage of adjacent elements
-
-```json
-{
-  "type": "array",
-  "x-component": "ArrayTable",
-  "items": {
-    "type": "object",
-    "properties": {
-      "source": {
-        "type": "string",
-        "x-component": "Input",
-        "x-reactions": {
-          "target": ".target",
-          "fulfill": {
-            "state": {
-              "visible": "{{$self.value === '123'}}" //Any level of attributes supports expressions
-            }
-          }
-        }
-      },
-      "target": {
-        "type": "string",
-        "x-component": "Input"
-      }
-    }
-  }
-}
-```
-
-Writing method four, based on Schema protocol linkage
+Writing method three, based on Schema protocol linkage
 
 ```json
 {
@@ -793,7 +775,7 @@ Writing method four, based on Schema protocol linkage
 }
 ```
 
-Writing method five, based on run statement linkage
+Writing method four, based on run statement linkage
 
 ```json
 {
@@ -816,7 +798,7 @@ Writing method five, based on run statement linkage
 }
 ```
 
-Writing method six, based on the linkage of life cycle hooks
+Writing method five, based on the linkage of life cycle hooks
 
 ```json
 {
@@ -845,6 +827,8 @@ Writing method six, based on the linkage of life cycle hooks
 
 **Passive linkage**
 
+Writing method one, standard passive linkage
+
 ```json
 {
   "type": "object",
@@ -862,6 +846,36 @@ Writing method six, based on the linkage of life cycle hooks
         "fulfill": {
           "schema": {
             "x-visible": "{{$deps[0] === '123'}}" //Any level of attributes supports expressions
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Writing method two, linkage of adjacent elements
+
+```json
+{
+  "type": "array",
+  "x-component": "ArrayTable",
+  "items": {
+    "type": "object",
+    "properties": {
+      "source": {
+        "type": "string",
+        "x-component": "Input"
+      },
+      "target": {
+        "type": "string",
+        "x-component": "Input",
+        "x-reactions": {
+          "dependencies": [".source"],
+          "fulfill": {
+            "schema": {
+              "x-visible": "{{$deps[0] === '123'}}"
+            }
           }
         }
       }
@@ -958,6 +972,18 @@ Represents the top-level form data, which can be used in ordinary attribute expr
 ### $form
 
 Represents the current Form instance, which can be used in ordinary attribute expressions, and can also be used in x-reactions
+
+### $observable
+
+It is used to create reactive objects in the same way as observable
+
+### $memo
+
+Used to create persistent reference data in the same way as autorun.memo
+
+### $effect
+
+The timing of the next microtask in response to autorun's first execution and the dispose in response to autorun are used in the same way as autorun.effect
 
 ### $dependencies
 

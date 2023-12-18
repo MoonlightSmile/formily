@@ -10,7 +10,7 @@ import {
 } from '@formily/react'
 import { toArr } from '@formily/shared'
 import cls from 'classnames'
-import ArrayBase, { ArrayBaseMixins } from '../array-base'
+import ArrayBase, { ArrayBaseMixins, IArrayBaseProps } from '../array-base'
 import { usePrefixCls, Empty } from '../__builtins__'
 import { CollapseProps, PanelProps } from '@alifd/next/lib/collapse'
 
@@ -18,30 +18,30 @@ export interface IArrayCollapseProps extends CollapseProps {
   defaultOpenPanelCount?: number
 }
 type ComposedArrayCollapse = React.FC<
-  React.PropsWithChildren<IArrayCollapseProps>
+  React.PropsWithChildren<IArrayCollapseProps & IArrayBaseProps>
 > &
   ArrayBaseMixins & {
     CollapsePanel?: React.FC<React.PropsWithChildren<PanelProps>>
   }
 
 const isAdditionComponent = (schema: ISchema) => {
-  return schema['x-component']?.indexOf('Addition') > -1
+  return schema['x-component']?.indexOf?.('Addition') > -1
 }
 
 const isIndexComponent = (schema: ISchema) => {
-  return schema['x-component']?.indexOf('Index') > -1
+  return schema['x-component']?.indexOf?.('Index') > -1
 }
 
 const isRemoveComponent = (schema: ISchema) => {
-  return schema['x-component']?.indexOf('Remove') > -1
+  return schema['x-component']?.indexOf?.('Remove') > -1
 }
 
 const isMoveUpComponent = (schema: ISchema) => {
-  return schema['x-component']?.indexOf('MoveUp') > -1
+  return schema['x-component']?.indexOf?.('MoveUp') > -1
 }
 
 const isMoveDownComponent = (schema: ISchema) => {
-  return schema['x-component']?.indexOf('MoveDown') > -1
+  return schema['x-component']?.indexOf?.('MoveDown') > -1
 }
 
 const isOperationComponent = (schema: ISchema) => {
@@ -73,7 +73,7 @@ const insertExpandedKeys = (expandedKeys: number[], index: number) => {
 }
 
 export const ArrayCollapse: ComposedArrayCollapse = observer(
-  ({ defaultOpenPanelCount, ...props }: IArrayCollapseProps) => {
+  ({ defaultOpenPanelCount, ...props }) => {
     const field = useField<ArrayField>()
     const dataSource = Array.isArray(field.value) ? field.value : []
 
@@ -90,6 +90,7 @@ export const ArrayCollapse: ComposedArrayCollapse = observer(
       }
     }, [dataSource.length, field])
     if (!schema) throw new Error('can not found schema object')
+    const { onAdd, onCopy, onRemove, onMoveDown, onMoveUp } = props
 
     const renderAddition = () => {
       return schema.reduceProperties((addition, schema, key) => {
@@ -208,8 +209,13 @@ export const ArrayCollapse: ComposedArrayCollapse = observer(
     return (
       <ArrayBase
         onAdd={(index) => {
+          onAdd?.(index)
           setExpandKeys(insertExpandedKeys(expandKeys, index))
         }}
+        onCopy={onCopy}
+        onRemove={onRemove}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
       >
         {renderEmpty()}
         {renderItems()}

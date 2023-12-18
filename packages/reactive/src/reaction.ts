@@ -81,6 +81,7 @@ const runReactions = (target: any, key: PropertyKey) => {
     } else if (isBatching()) {
       PendingReactions.add(reaction)
     } else {
+      // never reach
       if (isFn(reaction._scheduler)) {
         reaction._scheduler(reaction)
       } else {
@@ -100,8 +101,9 @@ export const bindTargetKeyWithCurrentReaction = (operation: IOperation) => {
   if (type === 'iterate') {
     key = ITERATION_KEY
   }
-
-  const current = ReactionStack[ReactionStack.length - 1]
+  const reactionLen = ReactionStack.length
+  if (reactionLen === 0) return
+  const current = ReactionStack[reactionLen - 1]
   if (isUntracking()) return
   if (current) {
     DependencyCollected.value = true

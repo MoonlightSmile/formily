@@ -439,7 +439,17 @@ export default () => {
 
 ### ArrayCards
 
-参考 https://ant.design/components/card-cn/
+扩展属性
+
+| 属性名     | 类型                      | 描述         | 默认值 |
+| ---------- | ------------------------- | ------------ | ------ |
+| onAdd      | `(index: number) => void` | 增加方法     |        |
+| onRemove   | `(index: number) => void` | 删除方法     |        |
+| onCopy     | `(index: number) => void` | 复制方法     |        |
+| onMoveUp   | `(index: number) => void` | 向上移动方法 |        |
+| onMoveDown | `(index: number) => void` | 向下移动方法 |        |
+
+其余参考 https://ant.design/components/card-cn/
 
 ### ArrayCards.Addition
 
@@ -457,6 +467,8 @@ export default () => {
 
 注意：title 属性可以接收 Field 模型中的 title 映射，也就是在 Field 上传 title 也是生效的
 
+注意：使用`onClick={e => e.preventDefault()}`可禁用默认行为。
+
 ### ArrayCards.Copy
 
 > 复制按钮
@@ -472,6 +484,8 @@ export default () => {
 
 注意：title 属性可以接收 Field 模型中的 title 映射，也就是在 Field 上传 title 也是生效的
 
+注意：使用`onClick={e => e.preventDefault()}`可禁用默认行为。
+
 ### ArrayCards.Remove
 
 > 删除按钮
@@ -483,6 +497,8 @@ export default () => {
 其余参考 https://ant.design/components/icon-cn/
 
 注意：title 属性可以接收 Field 模型中的 title 映射，也就是在 Field 上传 title 也是生效的
+
+注意：使用`onClick={e => e.preventDefault()}`可禁用默认行为。
 
 ### ArrayCards.MoveDown
 
@@ -496,6 +512,8 @@ export default () => {
 
 注意：title 属性可以接收 Field 模型中的 title 映射，也就是在 Field 上传 title 也是生效的
 
+注意：使用`onClick={e => e.preventDefault()}`可禁用默认行为。
+
 ### ArrayCards.MoveUp
 
 > 上移按钮
@@ -507,6 +525,8 @@ export default () => {
 其余参考 https://ant.design/components/icon-cn/
 
 注意：title 属性可以接收 Field 模型中的 title 映射，也就是在 Field 上传 title 也是生效的
+
+注意：使用`onClick={e => e.preventDefault()}`可禁用默认行为。
 
 ### ArrayCards.Index
 

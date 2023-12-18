@@ -1,6 +1,6 @@
 import Vue, { FunctionalComponentOptions } from 'vue'
 import { render, fireEvent, waitFor } from '@testing-library/vue'
-import { defineComponent, h } from '@vue/composition-api'
+import { defineComponent, h, ref } from '@vue/composition-api'
 import {
   createForm,
   Field as FieldType,
@@ -160,6 +160,66 @@ test('render field', async () => {
   expect(queryByText('aa-decorator')).not.toBeNull()
 })
 
+const InputWithSlot = defineComponent({
+  props: ['value'],
+  setup(props, { attrs, listeners, slots }) {
+    const fieldRef = useField()
+    return () => {
+      const field = fieldRef.value
+      return h('div', {}, [
+        h('input', {
+          class: 'test-input',
+          attrs: {
+            ...attrs,
+            value: props.value,
+            'data-testid': field.path.toString(),
+          },
+          on: {
+            ...listeners,
+            input: listeners.change,
+          },
+        }),
+        [slots['append']?.({ path: field.path.toString() })],
+      ])
+    }
+  },
+})
+
+test('render in nesting slots with (ObjectField/ArrayField) no decorator', async () => {
+  const form = createForm()
+
+  const { getByTestId } = render(
+    defineComponent({
+      name: 'TestComponent',
+      setup() {
+        return {
+          form,
+          Normal,
+          InputWithSlot,
+          Decorator,
+        }
+      },
+      template: `<FormProvider :form="form">
+      <ObjectField name="cc" :component="['div']">
+        <Field name="mm" :decorator="[Decorator]" :component="[InputWithSlot]">
+          <template #append="{ path }">
+            <span :data-testid="'slot-prop-' +path"></span>
+          </template>
+        </Field>
+      </ObjectField>
+      <VoidField name="dd" :component="['div']">
+        <Field name="oo" :decorator="[Decorator]" :component="[InputWithSlot]" />
+      </VoidField>
+      
+    </FormProvider>`,
+    })
+  )
+
+  expect(getByTestId('oo')).not.toBeUndefined()
+  expect(getByTestId('cc.mm')).not.toBeUndefined()
+  expect(getByTestId('slot-prop-cc.mm')).not.toBeUndefined()
+})
+
 test('render field with html attrs', async () => {
   const form = createForm()
 
@@ -308,6 +368,51 @@ test('useFormEffects', async () => {
   })
   await waitFor(() => {
     expect(queryByTestId('custom-value').textContent).toEqual('123')
+  })
+})
+
+test('useFormEffects: should be reregister when formRef change', async () => {
+  const CustomField = defineComponent({
+    setup() {
+      const reactiveText = ref()
+      useFormEffects(() => {
+        onFieldChange('aa', ['value'], (target) => {
+          if (isVoidField(target)) return
+          reactiveText.value = target.value
+        })
+      })
+      return () =>
+        h('div', { attrs: { 'data-testid': 'custom-value' } }, [
+          reactiveText.value,
+        ])
+    },
+  })
+
+  const { queryByTestId } = render({
+    setup() {
+      const formRef = ref(createForm())
+      return {
+        formRef,
+        Input,
+        CustomField,
+        changeForm() {
+          // form change
+          formRef.value = createForm()
+          formRef.value.setValues({ aa: 'text' })
+        },
+      }
+    },
+    template: `<FormProvider :form="formRef">
+      <Field name="aa" :decorator="[Decorator]" :component="[Input]" />
+      <VoidField name="bb" :component="[CustomField]" />
+      <button data-testid="btn" @click="changeForm()">Change</button>
+    </FormProvider>`,
+  })
+
+  expect(queryByTestId('custom-value').textContent).toEqual('')
+  queryByTestId('btn').click()
+  await waitFor(() => {
+    expect(queryByTestId('custom-value').textContent).toEqual('text')
   })
 })
 

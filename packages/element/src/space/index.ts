@@ -1,7 +1,7 @@
 // https://github.com/vueComponent/ant-design-vue/blob/next/components/space/index.tsx
 
-import { defineComponent } from '@vue/composition-api'
 import { h } from '@formily/vue'
+import { defineComponent } from 'vue-demi'
 import { stylePrefix } from '../__builtins__/configs'
 
 import type { VNode } from 'vue'
@@ -22,7 +22,7 @@ const spaceSize = {
 export const Space = defineComponent<SpaceProps>({
   name: 'FSpace',
   props: ['size', 'direction', 'align'],
-  setup(props, { slots }) {
+  setup(props, { attrs, slots }) {
     const layout = useFormLayout()
 
     return () => {
@@ -72,23 +72,24 @@ export const Space = defineComponent<SpaceProps>({
           {
             class: itemClassName,
             key: `${itemClassName}-${i}`,
-            style:
-              i === len - 1
-                ? {}
-                : {
-                    [direction === 'vertical'
-                      ? 'marginBottom'
-                      : marginDirection]:
-                      typeof size === 'string'
-                        ? `${spaceSize[size]}px`
-                        : `${size}px`,
-                  },
           },
           { default: () => [child] }
         )
       )
 
-      return h('div', { class: someSpaceClass }, { default: () => renderItems })
+      return h(
+        'div',
+        {
+          ...attrs,
+          class: { ...(attrs as any).class, ...someSpaceClass },
+          style: {
+            ...(attrs as any).style,
+            gap:
+              typeof size === 'string' ? `${spaceSize[size]}px` : `${size}px`,
+          },
+        },
+        { default: () => renderItems }
+      )
     }
   },
 })

@@ -122,6 +122,7 @@ export class Form<ValueType extends object = any> {
   protected makeObservable() {
     define(this, {
       fields: observable.shallow,
+      indexes: observable.shallow,
       initialized: observable.ref,
       validating: observable.ref,
       submitting: observable.ref,
@@ -155,8 +156,6 @@ export class Form<ValueType extends object = any> {
       deleteValuesIn: action,
       setSubmitting: action,
       setValidating: action,
-      setFormGraph: action,
-      clearFormGraph: action,
       reset: action,
       submit: action,
       validate: action,
@@ -382,11 +381,13 @@ export class Form<ValueType extends object = any> {
   setValues = (values: any, strategy: IFormMergeStrategy = 'merge') => {
     if (!isPlainObj(values)) return
     if (strategy === 'merge' || strategy === 'deepMerge') {
-      this.values = merge(this.values, values, {
+      merge(this.values, values, {
+        // never reach
         arrayMerge: (target, source) => source,
+        assign: true,
       })
     } else if (strategy === 'shallowMerge') {
-      this.values = Object.assign(this.values, values)
+      Object.assign(this.values, values)
     } else {
       this.values = values as any
     }
@@ -398,11 +399,13 @@ export class Form<ValueType extends object = any> {
   ) => {
     if (!isPlainObj(initialValues)) return
     if (strategy === 'merge' || strategy === 'deepMerge') {
-      this.initialValues = merge(this.initialValues, initialValues, {
+      merge(this.initialValues, initialValues, {
+        // never reach
         arrayMerge: (target, source) => source,
+        assign: true,
       })
     } else if (strategy === 'shallowMerge') {
-      this.initialValues = Object.assign(this.initialValues, initialValues)
+      Object.assign(this.initialValues, initialValues)
     } else {
       this.initialValues = initialValues as any
     }
@@ -603,7 +606,9 @@ export class Form<ValueType extends object = any> {
     return batchValidate(this, pattern)
   }
 
-  submit = <T>(onSubmit?: (values: any) => Promise<T> | void): Promise<T> => {
+  submit = <T>(
+    onSubmit?: (values: ValueType) => Promise<T> | void
+  ): Promise<T> => {
     return batchSubmit(this, onSubmit)
   }
 

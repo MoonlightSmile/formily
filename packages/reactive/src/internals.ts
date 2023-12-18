@@ -2,7 +2,7 @@ import { isFn, isCollectionType, isNormalType } from './checkers'
 import {
   RawProxy,
   ProxyRaw,
-  MakeObservableSymbol,
+  MakeObModelSymbol,
   RawShallowProxy,
 } from './environment'
 import { baseHandlers, collectionHandlers } from './handlers'
@@ -35,6 +35,7 @@ const createCollectionProxy = (target: any, shallow?: boolean) => {
 const createShallowProxy = (target: any) => {
   if (isNormalType(target)) return createNormalProxy(target, true)
   if (isCollectionType(target)) return createCollectionProxy(target, true)
+  // never reach
   return target
 }
 
@@ -65,6 +66,7 @@ export const createObservable = (
   if (shallow) return createShallowProxy(value)
   if (isNormalType(value)) return createNormalProxy(value)
   if (isCollectionType(value)) return createCollectionProxy(value)
+  // never reach
   return value
 }
 
@@ -75,17 +77,17 @@ export const createAnnotation = <T extends (visitor: IVisitor) => any>(
     return maker({ value: target })
   }
   if (isFn(maker)) {
-    annotation[MakeObservableSymbol] = maker
+    annotation[MakeObModelSymbol] = maker
   }
   return annotation
 }
 
 export const getObservableMaker = (target: any) => {
-  if (target[MakeObservableSymbol]) {
-    if (!target[MakeObservableSymbol][MakeObservableSymbol]) {
-      return target[MakeObservableSymbol]
+  if (target[MakeObModelSymbol]) {
+    if (!target[MakeObModelSymbol][MakeObModelSymbol]) {
+      return target[MakeObModelSymbol]
     }
-    return getObservableMaker(target[MakeObservableSymbol])
+    return getObservableMaker(target[MakeObModelSymbol])
   }
 }
 
@@ -132,7 +134,7 @@ export const createBoundaryAnnotation = (
     target[key] = boundary.bound(target[key], target)
     return target
   })
-  boundary[MakeObservableSymbol] = annotation
-  boundary.bound[MakeObservableSymbol] = annotation
+  boundary[MakeObModelSymbol] = annotation
+  boundary.bound[MakeObModelSymbol] = annotation
   return boundary
 }
